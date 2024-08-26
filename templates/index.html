@@ -3,19 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unifying theory of scaling in drop impact: Forces & maximum spreading diameter</title>
+    <title>Unifying Theory of Scaling in Drop Impact: Forces & Maximum Spreading Diameter</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 50px;
         }
-        input {
+        input, button {
             margin: 5px;
-            padding: 10px;
-            font-size: 16px;
-        }
-        button {
-            margin: 10px;
             padding: 10px;
             font-size: 16px;
         }
@@ -29,12 +24,12 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-    <h1>Unifying theory of scaling in drop impact: Forces & maximum spreading diameter</h1>
+    <h1>Unifying Theory of Scaling in Drop Impact: Forces & Maximum Spreading Diameter</h1>
     <h2>Abstract</h2>
     <p>
         The dynamics of drop impact on a rigid surface – omnipresent in nature and technology – strongly
-        depends on the droplet’s velocity, its size, and its material properties. The main characteristics are
-        the droplet’s force exerted on the surface and its maximal spreading radius. The crucial question
+        depends on the droplet's velocity, its size, and its material properties. The main characteristics are
+        the droplet's force exerted on the surface and its maximal spreading radius. The crucial question
         is: How do they depend on the (dimensionless) control parameters, which are the Weber number
         \(We\) (non-dimensionalized kinetic energy) and the Ohnesorge number \(Oh\) (dimensionless viscosity)?
         Here we perform direct numerical simulations over the huge parameter range \(1 \leq We \leq 10^3\) and
@@ -47,32 +42,45 @@
         plays a significant role during impact, even for low-viscosity droplets (low \(Oh\)), in contrast to what
         had been assumed in prior theories.
     </p>
-    <label for="fieldA">Weber number, \(We = \frac{\rho V_0^2 D_0}{\gamma}\):</label>
-    <input type="number" id="fieldA" placeholder="Enter a number">
+    <label for="weber-number">Weber number, \(We = \frac{\rho V_0^2 D_0}{\gamma}\):</label>
+    <input type="number" id="weber-number" placeholder="Enter a number">
     <br>
-    <label for="fieldB">Ohnesorge number, \(Oh = \frac{\mu}{\sqrt{\rho \gamma D_0}}\):</label>
-    <input type="number" id="fieldB" placeholder="Enter a number">
+    <label for="ohnesorge-number">Ohnesorge number, \(Oh = \frac{\mu}{\sqrt{\rho \gamma D_0}}\):</label>
+    <input type="number" id="ohnesorge-number" placeholder="Enter a number">
     <br>
-    <button onclick="sendData()">Process</button>
+    <button onclick="processImpactData()">Process</button>
     <div id="result"></div>
 
     <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/pxrWO2GiML8?si=nQrs-Mu5tyFRiNr6" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
     <script>
-        async function sendData() {
-            const a = parseFloat(document.getElementById('fieldA').value);
-            const b = parseFloat(document.getElementById('fieldB').value);
-    
-            const response = await fetch('/add', {
+        async function processImpactData() {
+            const weberNumber = parseFloat(document.getElementById('weber-number').value);
+            const ohnesorgeNumber = parseFloat(document.getElementById('ohnesorge-number').value);
+
+            const reynoldsResponse = await fetch('/add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({a: a, b: b})
+                body: JSON.stringify({ weberNumber, ohnesorgeNumber })
             });
-    
-            const result = await response.json();
-            document.getElementById('result').innerHTML = `\\(Re = ${result.result}\\)`;
+
+            const reynoldsResult = await reynoldsResponse.json();
+            const reynoldsNumber = reynoldsResult.result;
+
+            const regimeResponse = await fetch('/regime', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ weberNumber, ohnesorgeNumber })
+            });
+
+            const regimeResult = await regimeResponse.json();
+            const impactRegime = regimeResult.regime;
+
+            document.getElementById('result').innerHTML = `\\(Re = ${reynoldsNumber}\\)<br>Regime: ${impactRegime}`;
             MathJax.typeset();
         }
     </script>

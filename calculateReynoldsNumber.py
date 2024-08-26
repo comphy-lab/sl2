@@ -1,21 +1,23 @@
-from flask import Flask, request, jsonify, render_template
-from flask_socketio import SocketIO
+from flask import Blueprint, request, jsonify, render_template
 import numpy as np
 
-app = Flask(__name__)
-socketio = SocketIO(app)
+calculate_bp = Blueprint('calculate', __name__)
 
-@app.route('/')
+@calculate_bp.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/add', methods=['POST'])
+@calculate_bp.route('/add', methods=['POST'])
 def add_numbers():
     data = request.json
-    We = data['a']
-    Oh = data['b']
-    c = np.sqrt(We) / Oh
-    return jsonify({'result': c})
-
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    weber_number = data.get('weberNumber')
+    ohnesorge_number = data.get('ohnesorgeNumber')
+    if weber_number is None or ohnesorge_number is None:
+        return jsonify({'error': 'Missing parameters'}), 400
+    try:
+        weber_number = float(weber_number)
+        ohnesorge_number = float(ohnesorge_number)
+        reynolds_number = np.sqrt(weber_number) / ohnesorge_number
+        return jsonify({'result': reynolds_number})
+    except ValueError:
+        return jsonify({'error': 'Invalid input'}), 400
