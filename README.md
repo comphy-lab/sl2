@@ -8,6 +8,7 @@ SLtheoryWebsite
   |-- calculateReynoldsNumber.py
   |-- requirements.txt
   |-- README.md
+  |-- vercel.json
   |-- LICENSE
   |-- runtime.txt
 ```
