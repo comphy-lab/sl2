@@ -11,6 +11,7 @@ Small Flask app for exploring the drop-impact scaling theory described in the pa
 SLtheoryWebsite/
   app.py
   calculateReynoldsNumber.py
+  deploy.sh
   regimeDecide.py
   SLtheory_prediction.py
   SLtheory_model.json
@@ -29,6 +30,14 @@ pip install -r requirements.txt
 python app.py
 ```
 
+Or use the helper script to create a virtualenv, install dependencies, and start the local server in one step:
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+By default the script serves the app at `http://127.0.0.1:5000`. You can override the bind address or port with environment variables such as `HOST=0.0.0.0 PORT=8000 ./deploy.sh`.
 
 The app is configured for Python 3.9 in `runtime.txt`.
 
