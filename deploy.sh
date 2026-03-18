@@ -22,8 +22,13 @@ if [[ ! -d "$VENV_DIR" ]]; then
   "$PYTHON_BIN" -m venv "$VENV_DIR"
 fi
 
-echo "Installing dependencies from requirements.txt"
-"$VENV_DIR/bin/python" -m pip install -r requirements.txt
+if [[ ! -f "$VENV_DIR/.requirements-installed" ]] || [[ requirements.txt -nt "$VENV_DIR/.requirements-installed" ]]; then
+  echo "Installing dependencies from requirements.txt"
+  "$VENV_DIR/bin/python" -m pip install -r requirements.txt
+  touch "$VENV_DIR/.requirements-installed"
+else
+  echo "Using existing virtualenv dependencies from $VENV_DIR"
+fi
 
 echo "Starting local server at http://$HOST:$PORT"
 exec env HOST="$HOST" PORT="$PORT" "$VENV_DIR/bin/python" - <<'PY'

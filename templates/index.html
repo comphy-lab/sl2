@@ -43,17 +43,19 @@
         had been assumed in prior theories.
     </p>
     <label for="weber-number">Weber number, \(We = \frac{\rho V_0^2 D_0}{\gamma}\):</label>
-    <input type="number" id="weber-number" placeholder="Enter a number" min="0" step="any">
+    <input type="number" id="weber-number" placeholder="Enter a number" min="0.0000000001" step="any">
     <br>
     <label for="ohnesorge-number">Ohnesorge number, \(Oh = \frac{\mu}{\sqrt{\rho \gamma D_0}}\):</label>
-    <input type="number" id="ohnesorge-number" placeholder="Enter a number" min="0" step="any">
+    <input type="number" id="ohnesorge-number" placeholder="Enter a number" min="0.0000000001" step="any">
     <br>
-    <button onclick="processImpactData()">Process</button>
+    <button id="process-button" onclick="processImpactData()">Process</button>
     <div id="result"></div>
 
     <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/pxrWO2GiML8?si=nQrs-Mu5tyFRiNr6" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
     <script>
+        let activeRequestId = 0;
+
         function formatNumber(value) {
             const numericValue = Number(value);
 
@@ -76,13 +78,17 @@
             const weberNumber = parseFloat(document.getElementById('weber-number').value);
             const ohnesorgeNumber = parseFloat(document.getElementById('ohnesorge-number').value);
             const resultElement = document.getElementById('result');
+            const processButton = document.getElementById('process-button');
 
-            if (!Number.isFinite(weberNumber) || !Number.isFinite(ohnesorgeNumber)) {
+            if (!Number.isFinite(weberNumber) || !Number.isFinite(ohnesorgeNumber) || weberNumber <= 0 || ohnesorgeNumber <= 0) {
                 resultElement.textContent = 'Enter positive numeric values for We and Oh.';
                 return;
             }
 
+            const requestId = ++activeRequestId;
             const payload = JSON.stringify({ weberNumber, ohnesorgeNumber });
+            processButton.disabled = true;
+            resultElement.textContent = 'Calculating...';
 
             try {
                 const [reynoldsResponse, regimeResponse] = await Promise.all([
@@ -107,6 +113,10 @@
                     regimeResponse.json()
                 ]);
 
+                if (requestId !== activeRequestId) {
+                    return;
+                }
+
                 if (!reynoldsResponse.ok) {
                     throw new Error(reynoldsResult.error || 'Unable to calculate Reynolds number.');
                 }
@@ -124,7 +134,14 @@
                     await MathJax.typesetPromise([resultElement]);
                 }
             } catch (error) {
+                if (requestId !== activeRequestId) {
+                    return;
+                }
                 resultElement.textContent = error.message;
+            } finally {
+                if (requestId === activeRequestId) {
+                    processButton.disabled = false;
+                }
             }
         }
     </script>

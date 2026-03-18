@@ -13,7 +13,7 @@ This repository is a small Flask website for the SL theory drop-impact calculato
 
 - Treat `requirements.txt`, `runtime.txt`, and `vercel.json` as the source of truth for runtime and deployment.
 - Keep `README.md` and this file updated when routes, startup behavior, or deployment assumptions change.
-- Do not add websocket behavior unless the frontend actually needs it; `Flask-SocketIO` is currently unused.
+- Do not add websocket event handlers unless the frontend actually needs them; `Flask-SocketIO` currently wraps app startup, but there is no socket event logic.
 - Do not use `git commit` unless the user explicitly asks for a commit.
 
 ## Runtime Facts

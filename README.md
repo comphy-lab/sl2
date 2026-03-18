@@ -55,6 +55,6 @@ The frontend calls `/add` and `/regime` separately after the user submits the in
 
 ## Notes
 
-- The code validates that inputs are present, numeric, and positive before doing the Reynolds, regime, or `predBeta` calculations.
-- `Flask-SocketIO` is installed, but there are no socket handlers in the current app.
+- The code validates that inputs are present, JSON object shaped, numeric, finite, and positive before doing the Reynolds, regime, or `predBeta` calculations.
+- `Flask-SocketIO` is used to run the app locally, but there are no socket event handlers in the current app.
 - The page loads MathJax and a polyfill from external CDNs and embeds a YouTube iframe, so full rendering depends on external network access.

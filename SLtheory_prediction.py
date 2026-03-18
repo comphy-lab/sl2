@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Standalone BetaMax predictor from a saved best_model.json file.
+"""Standalone BetaMax predictor from a saved ``SLtheory_model.json`` file.
 
 Export this script together with ``SLtheory_model.json`` and run:
 
@@ -210,6 +210,8 @@ def predict_beta_from_payload(
         raise TypeError("Model JSON is missing a 'parameters' object.")
     if model_name not in MODEL_FUNCTIONS:
         raise KeyError(f"Unsupported model '{model_name}' in saved JSON.")
+    if not math.isfinite(oh) or not math.isfinite(we):
+        raise ValueError("Oh and We must both be finite.")
     if oh <= 0.0 or we <= 0.0:
         raise ValueError("Oh and We must both be positive.")
 
