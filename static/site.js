@@ -217,3 +217,137 @@ form?.elements?.weberNumber?.addEventListener("input", updatePhaseDiagram);
 form?.elements?.ohnesorgeNumber?.addEventListener("input", updatePhaseDiagram);
 form.addEventListener("submit", processImpactData);
 bibtexCopyButton?.addEventListener("click", copyBibtexEntry);
+
+// ── Batch CSV upload ────────────────────────────────────────────────
+
+(function () {
+    const batchForm    = document.getElementById("batch-form");
+    const batchBtn     = document.getElementById("batch-button");
+    const statusEl     = document.getElementById("batch-status");
+    const previewWrap  = document.getElementById("batch-preview-wrap");
+    const previewTable = document.getElementById("batch-preview-table");
+    const dlBtn        = document.getElementById("batch-download-btn");
+
+    if (!batchForm) return;
+
+    let lastBlobUrl = null;
+
+    function setStatus(msg, state) {
+        statusEl.textContent = msg;
+        statusEl.dataset.state = state || "";
+    }
+
+    batchForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const fileInput = batchForm.elements["file"];
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            setStatus("Select a CSV file first.", "err");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        if (!file.name.toLowerCase().endsWith(".csv")) {
+            setStatus("File must be a .csv", "err");
+            return;
+        }
+
+        batchBtn.disabled = true;
+        previewWrap.hidden = true;
+        setStatus("Uploading…", "");
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const resp = await fetch("/batch", { method: "POST", body: formData });
+
+            if (!resp.ok) {
+                const body = await resp.json().catch(() => ({ error: resp.statusText }));
+                throw new Error(body.error || resp.statusText);
+            }
+
+            const csvText = await resp.text();
+            const rowErrors = resp.headers.get("X-Row-Errors");
+
+            // Build blob for download
+            if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+            const blob = new Blob([csvText], { type: "text/csv" });
+            lastBlobUrl = URL.createObjectURL(blob);
+
+            dlBtn.onclick = function () {
+                const a = document.createElement("a");
+                a.href = lastBlobUrl;
+                a.download = "SLtheory_results.csv";
+                a.click();
+            };
+
+            renderBatchPreview(csvText, previewTable);
+            previewWrap.hidden = false;
+
+            const msg = rowErrors
+                ? "Done (some rows had parse errors — see CSV for details)."
+                : "Done — \u03B2 filled in for all rows.";
+            setStatus(msg, rowErrors ? "err" : "ok");
+        } catch (err) {
+            setStatus("Error: " + err.message, "err");
+        } finally {
+            batchBtn.disabled = false;
+        }
+    });
+
+    function renderBatchPreview(csvText, table) {
+        const lines  = csvText.trim().split("\n");
+        const header = parseCSVLine(lines[0]);
+        const rows   = lines.slice(1, 11).map(parseCSVLine);
+        table.innerHTML = "";
+
+        const thead = table.createTHead();
+        const hrow  = thead.insertRow();
+        header.forEach(function (h) {
+            const th = document.createElement("th");
+            th.textContent = h;
+            hrow.appendChild(th);
+        });
+
+        const betaIdx = header.indexOf("beta");
+        const tbody   = table.createTBody();
+        rows.forEach(function (cols) {
+            const tr = tbody.insertRow();
+            cols.forEach(function (val, i) {
+                const td = tr.insertCell();
+                td.textContent = val;
+                if (i === betaIdx) {
+                    td.className = val === "error" ? "error-val" : "beta-col";
+                }
+            });
+        });
+
+        if (lines.length - 1 > 10) {
+            const tr = tbody.insertRow();
+            const td = tr.insertCell();
+            td.colSpan  = header.length;
+            td.className = "more-rows";
+            td.textContent = "\u2026 " + (lines.length - 11) + " more rows (download to see all)";
+        }
+    }
+
+    // Minimal RFC 4180 CSV line parser (no quoted newlines needed here)
+    function parseCSVLine(line) {
+        const result = [];
+        let cur = "", inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+                else inQuotes = !inQuotes;
+            } else if (ch === "," && !inQuotes) {
+                result.push(cur); cur = "";
+            } else {
+                cur += ch;
+            }
+        }
+        result.push(cur);
+        return result;
+    }
+}());

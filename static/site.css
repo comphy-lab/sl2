@@ -766,3 +766,139 @@ input:focus-visible,
         transition: none;
     }
 }
+
+/* ── Batch CSV upload ──────────────────────────────────────────────── */
+
+.batch-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 1.25rem;
+}
+
+.batch-form input[type="file"] {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    padding: 0.5rem 0.75rem;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    background: var(--color-input-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.18s;
+}
+
+.batch-form input[type="file"]:focus-visible {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.batch-form input[type="file"]::file-selector-button {
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.25rem 0.65rem;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 0.75rem;
+    transition: background 0.18s;
+}
+
+.batch-form input[type="file"]::file-selector-button:hover {
+    background: var(--color-accent);
+    color: var(--color-button-text);
+}
+
+.batch-status-bar {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    min-height: 1.4em;
+    color: var(--color-muted);
+}
+
+.batch-status-bar[data-state="ok"]  { color: var(--color-accent); }
+.batch-status-bar[data-state="err"] { color: #b84040; }
+
+.batch-preview {
+    margin-top: 1.5rem;
+}
+
+.batch-preview__kicker {
+    margin-bottom: 0.5rem;
+}
+
+.batch-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+}
+
+.batch-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    font-family: var(--font-mono, monospace);
+}
+
+.batch-table-wrap th {
+    background: var(--color-surface);
+    color: var(--color-accent);
+    text-align: left;
+    padding: 0.45rem 0.85rem;
+    border-bottom: 1px solid var(--color-border);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.batch-table-wrap td {
+    padding: 0.35rem 0.85rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.batch-table-wrap tr:last-child td {
+    border-bottom: none;
+}
+
+.batch-table-wrap tr:hover td {
+    background: var(--color-accent-soft);
+}
+
+.batch-table-wrap td.beta-col {
+    color: var(--color-accent);
+    font-weight: 500;
+}
+
+.batch-table-wrap td.error-val {
+    color: #b84040;
+}
+
+.batch-table-wrap td.more-rows {
+    color: var(--color-soft);
+    font-style: italic;
+}
+
+.batch-download-btn {
+    margin-top: 0.9rem;
+    padding: 0.5rem 1.2rem;
+    font-size: 0.88rem;
+    background: transparent;
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-mono, monospace);
+    transition: background 0.18s, color 0.18s;
+}
+
+.batch-download-btn:hover {
+    background: var(--color-accent);
+    color: var(--color-button-text);
+}

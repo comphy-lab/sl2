@@ -7,10 +7,12 @@ socketio = SocketIO(app)
 # Import routes from other files
 from calculateReynoldsNumber import calculate_bp
 from regimeDecide import regime_bp
+from batchProcess import batch_bp
 
 # Register Blueprints
 app.register_blueprint(calculate_bp)
 app.register_blueprint(regime_bp)
+app.register_blueprint(batch_bp)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
