@@ -189,6 +189,50 @@
                         ></iframe>
                     </div>
                 </section>
+
+                <section class="panel" id="batch-section">
+                    <div class="panel-heading">
+                        <p class="panel-kicker">Batch</p>
+                        <h2>CSV upload</h2>
+                    </div>
+                    <div class="reading-block">
+                        <p>
+                            Upload a CSV with <code>We</code> and <code>Oh</code> header
+                            columns. The model fills in <code>beta</code> as the third
+                            column for every row and returns the completed file.
+                        </p>
+                    </div>
+                    <form id="batch-form" class="batch-form" novalidate>
+                        <div class="field">
+                            <label for="csv-file">CSV file</label>
+                            <p class="field-hint">
+                                First row must be a header containing <code>We</code> and
+                                <code>Oh</code>. Extra columns are preserved unchanged.
+                            </p>
+                            <input
+                                type="file"
+                                id="csv-file"
+                                name="file"
+                                accept=".csv"
+                            >
+                        </div>
+                        <button type="submit" id="batch-button">
+                            Upload &amp; calculate
+                        </button>
+                    </form>
+
+                    <div class="batch-status-bar" id="batch-status" aria-live="polite"></div>
+
+                    <div class="batch-preview" id="batch-preview-wrap" hidden>
+                        <p class="panel-kicker batch-preview__kicker">Preview — first 10 rows</p>
+                        <div class="batch-table-wrap">
+                            <table id="batch-preview-table"></table>
+                        </div>
+                        <button class="batch-download-btn" id="batch-download-btn" type="button">
+                            Download full CSV
+                        </button>
+                    </div>
+                </section>
             </section>
 
             <aside class="calculator-column">
