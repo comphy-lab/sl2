@@ -297,10 +297,15 @@ bibtexCopyButton?.addEventListener("click", copyBibtexEntry);
     });
 
     function renderBatchPreview(csvText, table) {
-        const lines  = csvText.trim().split("\n");
-        const header = parseCSVLine(lines[0]);
-        const rows   = lines.slice(1, 11).map(parseCSVLine);
         table.innerHTML = "";
+        const parsedRows = parseCSV(csvText);
+
+        if (parsedRows.length === 0) {
+            return;
+        }
+
+        const header = parsedRows[0];
+        const rows = parsedRows.slice(1, 11);
 
         const thead = table.createTHead();
         const hrow  = thead.insertRow();
@@ -323,31 +328,60 @@ bibtexCopyButton?.addEventListener("click", copyBibtexEntry);
             });
         });
 
-        if (lines.length - 1 > 10) {
+        if (parsedRows.length - 1 > 10) {
             const tr = tbody.insertRow();
             const td = tr.insertCell();
             td.colSpan  = header.length;
             td.className = "more-rows";
-            td.textContent = "\u2026 " + (lines.length - 11) + " more rows (download to see all)";
+            td.textContent = "\u2026 " + (parsedRows.length - 11) + " more rows (download to see all)";
         }
     }
 
-    // Minimal RFC 4180 CSV line parser (no quoted newlines needed here)
-    function parseCSVLine(line) {
-        const result = [];
-        let cur = "", inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-            const ch = line[i];
+    function parseCSV(csvText) {
+        const rows = [];
+        let row = [];
+        let cell = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < csvText.length; i++) {
+            const ch = csvText[i];
             if (ch === '"') {
-                if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
-                else inQuotes = !inQuotes;
+                if (inQuotes && csvText[i + 1] === '"') {
+                    cell += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
             } else if (ch === "," && !inQuotes) {
-                result.push(cur); cur = "";
+                row.push(cell);
+                cell = "";
+            } else if ((ch === "\n" || ch === "\r") && !inQuotes) {
+                if (ch === "\r" && csvText[i + 1] === "\n") {
+                    i++;
+                }
+                row.push(cell);
+                rows.push(row);
+                row = [];
+                cell = "";
             } else {
-                cur += ch;
+                cell += ch;
             }
         }
-        result.push(cur);
-        return result;
+
+        if (inQuotes) {
+            throw new Error("Preview could not be rendered because the CSV output is malformed.");
+        }
+
+        if (cell.length > 0 || row.length > 0) {
+            row.push(cell);
+            rows.push(row);
+        }
+
+        const lastRow = rows[rows.length - 1];
+        if (lastRow && lastRow.length === 1 && lastRow[0] === "") {
+            rows.pop();
+        }
+
+        return rows;
     }
 }());

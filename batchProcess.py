@@ -1,26 +1,31 @@
 """Batch processing endpoint.
 
 Accepts a CSV file with ``We`` and ``Oh`` columns (first row = header),
-runs the same SL-theory prediction as ``/regime`` for each row, and
-returns a CSV with ``beta`` filled in as the third column.
+applies the same SL-theory input validation and ``predBeta`` model used by
+``/regime`` for each row, and returns a CSV with ``beta`` filled in as the
+third column.
 
-No new runtime dependencies — uses Python stdlib ``csv`` only.
+No new runtime dependencies - uses Python stdlib ``csv`` only.
 """
 
 import csv
 import io
-import math
 from pathlib import Path
 
 from flask import Blueprint, request, jsonify, Response
 
 from SLtheory_prediction import load_model_payload, predict_beta_from_payload
-from regimeDecide import classify_regime
+from theory_ranges import validate_theory_inputs
 
 batch_bp = Blueprint("batch", __name__)
 _MODEL_PAYLOAD = load_model_payload(
     Path(__file__).resolve().with_name("SLtheory_model.json")
 )
+MAX_BATCH_UPLOAD_BYTES = 1024 * 1024
+
+
+def _format_row_error(line_num, message, we_raw, oh_raw):
+    return f"row {line_num}: {message} (We={we_raw!r}, Oh={oh_raw!r})"
 
 
 @batch_bp.route("/batch", methods=["POST"])
@@ -57,15 +62,20 @@ def batch_process():
     for line_num, row in enumerate(reader, start=2):
         we_raw = row.get("We", "")
         oh_raw = row.get("Oh", "")
+        validation_error = None
         try:
             we = float(we_raw)
             oh = float(oh_raw)
-            if not (math.isfinite(we) and math.isfinite(oh) and we > 0 and oh > 0):
-                raise ValueError("non-positive or non-finite")
+            validation_error = validate_theory_inputs(we, oh)
+            if validation_error is not None:
+                raise ValueError(validation_error)
             pred_beta = predict_beta_from_payload(_MODEL_PAYLOAD, oh=oh, we=we)
             row["beta"] = f"{pred_beta:.6f}"
         except (ValueError, TypeError):
-            row_errors.append(f"row {line_num}: invalid We={we_raw!r}, Oh={oh_raw!r}")
+            message = (
+                validation_error if validation_error is not None else "Invalid We/Oh inputs"
+            )
+            row_errors.append(_format_row_error(line_num, message, we_raw, oh_raw))
             row["beta"] = "error"
 
         out_rows.append(row)
