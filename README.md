@@ -44,7 +44,7 @@ chmod +x deploy.sh
 ./deploy.sh
 ```
 
-By default the script serves the app at `http://127.0.0.1:5000`. You can override the port from the CLI with `./deploy.sh 8000` or `./deploy.sh --port 8000`. You can still override the bind address or default port with environment variables such as `HOST=0.0.0.0 PORT=8000 ./deploy.sh`.
+By default the script serves the app at `http://127.0.0.1:5000`. You can override the port from the CLI with `./deploy.sh 8000` or `./deploy.sh --port 8000`. You can still override the bind address or default port with environment variables, but the helper is intended for local development and only allows `FLASK_DEBUG=1` on loopback hosts such as `127.0.0.1` or `localhost`.
 
 The app is configured for Python 3.9 in `runtime.txt`.
 
