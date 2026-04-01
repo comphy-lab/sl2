@@ -1,4 +1,5 @@
 import io
+from functools import lru_cache
 from typing import Optional
 
 import numpy as np
@@ -54,7 +55,8 @@ THEMES = {
 }
 
 
-def render_phase_diagram_svg(
+@lru_cache(maxsize=256)
+def _render_phase_diagram_svg_cached(
     *,
     theme: str = "light",
     weber_number: Optional[float] = None,
@@ -208,3 +210,16 @@ def render_phase_diagram_svg(
         svg_markup = buffer.getvalue()
 
     return svg_markup.replace("<svg ", '<svg role="img" aria-label="Weber-Ohnesorge phase diagram" ')
+
+
+def render_phase_diagram_svg(
+    *,
+    theme: str = "light",
+    weber_number: Optional[float] = None,
+    ohnesorge_number: Optional[float] = None,
+) -> str:
+    return _render_phase_diagram_svg_cached(
+        theme=theme,
+        weber_number=weber_number,
+        ohnesorge_number=ohnesorge_number,
+    )
