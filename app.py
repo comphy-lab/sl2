@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, jsonify
 from flask_socketio import SocketIO
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -26,4 +28,10 @@ def handle_request_entity_too_large(_error):
     ), 413
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    debug_mode = os.getenv("FLASK_DEBUG", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    socketio.run(app, debug=debug_mode)
