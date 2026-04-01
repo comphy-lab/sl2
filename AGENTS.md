@@ -23,6 +23,7 @@ This repository is a small Flask website for the SL theory drop-impact calculato
 - Python version: `python-3.9`.
 - Dependencies: `Flask`, `Flask-SocketIO`, `numpy`, `matplotlib`.
 - Local start command: `python app.py` or `./deploy.sh`.
+- `./deploy.sh` defaults to a non-debug loopback bind and only permits `FLASK_DEBUG=1` with loopback hosts.
 - Deployment target: Vercel via `@vercel/python`.
 
 ## API Contract

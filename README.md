@@ -44,7 +44,15 @@ chmod +x deploy.sh
 ./deploy.sh
 ```
 
-By default the script serves the app at `http://127.0.0.1:5000`. You can override the port from the CLI with `./deploy.sh 8000` or `./deploy.sh --port 8000`. You can still override the bind address or default port with environment variables such as `HOST=0.0.0.0 PORT=8000 ./deploy.sh`.
+By default the script serves the app at `http://127.0.0.1:5000` with Flask debug mode disabled. You can override the port from the CLI with `./deploy.sh 8000` or `./deploy.sh --port 8000`. You can still override the bind address or default port with environment variables such as `HOST=0.0.0.0 PORT=8000 ./deploy.sh`.
+
+If you need the Werkzeug debugger for local development, enable it explicitly on a loopback bind:
+
+```bash
+FLASK_DEBUG=1 ./deploy.sh
+```
+
+`FLASK_DEBUG=1` is intentionally rejected for non-loopback `HOST` values to avoid exposing the debugger or debug tracebacks over the network.
 
 The app is configured for Python 3.9 in `runtime.txt`.
 
@@ -65,5 +73,5 @@ The frontend calls `/add` and `/regime` separately after the user submits the in
 ## Notes
 
 - The code validates that inputs are present, JSON object shaped, numeric, finite, and positive before doing the Reynolds, regime, or `predBeta` calculations, and batch CSV rows reuse the same theory-range validation.
-- `Flask-SocketIO` is used to run the app locally, but there are no socket event handlers in the current app.
+- `Flask-SocketIO` is used to run the app locally, but there are no socket event handlers in the current app. The helper keeps debug mode off by default and only allows `FLASK_DEBUG=1` on loopback hosts.
 - The page loads MathJax and a polyfill from external CDNs and embeds a YouTube iframe, so full rendering depends on external network access.

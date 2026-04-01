@@ -99,5 +99,8 @@ def phase_diagram():
         ohnesorge_number=ohnesorge_number,
     )
     response = Response(svg_markup, mimetype='image/svg+xml')
-    response.headers['Cache-Control'] = 'no-store'
+    if weber_number is None and ohnesorge_number is None:
+        response.headers['Cache-Control'] = 'public, max-age=300'
+    else:
+        response.headers['Cache-Control'] = 'private, max-age=60'
     return response

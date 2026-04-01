@@ -13,6 +13,7 @@ Options:
 Environment:
   HOST             Bind host (default: 127.0.0.1)
   PORT             Default port when no CLI port is provided (default: 5000)
+  FLASK_DEBUG      Enable Flask debug mode only for loopback binds (default: 0)
   VENV_DIR         Virtual environment path (default: ./.venv)
   PYTHON_BIN       Python interpreter used to create the virtual environment
 EOF
@@ -72,9 +73,22 @@ fi
 VENV_DIR="${VENV_DIR:-$SCRIPT_DIR/.venv}"
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:-5000}"
+FLASK_DEBUG="${FLASK_DEBUG:-0}"
 
 if [[ -n "$CLI_PORT" ]]; then
   PORT="$CLI_PORT"
+fi
+
+DEBUG_NORMALIZED="$(printf '%s' "$FLASK_DEBUG" | tr '[:upper:]' '[:lower:]')"
+if [[ "$DEBUG_NORMALIZED" =~ ^(1|true|yes|on)$ ]]; then
+  DEBUG_ENABLED=1
+else
+  DEBUG_ENABLED=0
+fi
+
+if [[ "$DEBUG_ENABLED" -eq 1 ]] && [[ "$HOST" != "127.0.0.1" && "$HOST" != "localhost" && "$HOST" != "::1" ]]; then
+  echo "Error: FLASK_DEBUG may only be used with loopback hosts (127.0.0.1, localhost, or ::1)." >&2
+  exit 1
 fi
 
 if [[ ! -d "$VENV_DIR" ]]; then
@@ -90,20 +104,33 @@ else
   echo "Using existing virtualenv dependencies from $VENV_DIR"
 fi
 
-echo "Starting local server at http://$HOST:$PORT"
-exec env HOST="$HOST" PORT="$PORT" "$VENV_DIR/bin/python" - <<'PY'
+if [[ "$DEBUG_ENABLED" -eq 1 ]]; then
+  echo "Starting local debug server at http://$HOST:$PORT"
+else
+  echo "Starting local server at http://$HOST:$PORT"
+fi
+exec env HOST="$HOST" PORT="$PORT" FLASK_DEBUG="$FLASK_DEBUG" "$VENV_DIR/bin/python" - <<'PY'
 import os
 
 from app import app, socketio
 
 host = os.environ.get("HOST", "127.0.0.1")
 port = int(os.environ.get("PORT", "5000"))
+debug_mode = os.environ.get("FLASK_DEBUG", "0").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
+if debug_mode and host not in {"127.0.0.1", "::1", "localhost"}:
+    raise SystemExit("FLASK_DEBUG=1 is only supported with loopback HOST values")
 
 socketio.run(
     app,
     host=host,
     port=port,
-    debug=True,
+    debug=debug_mode,
     use_reloader=False,
     allow_unsafe_werkzeug=True,
 )
